@@ -1,5 +1,5 @@
 ### Firebase Keys ###
-App/config.js
+src/App/cfg.js
 
 # dependencies
 /node_modules

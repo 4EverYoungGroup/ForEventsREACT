@@ -1,5 +1,5 @@
 import * as firebase from "firebase";
-import * as Config from "../../App/config";
+import * as Config from "../../App/cfg";
 
 // Setup
 export function setup() {
