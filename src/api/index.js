@@ -1,10 +1,11 @@
-import * as Service from "./service";
-import * as Firebase from "./firebase";
+import * as service from "./service";
+import * as firebase from "./firebase";
+import client from "./client2";
 
-export { Service, Firebase };
+export { service, firebase, client };
 
 // Setup
-export function setup() {
-  Service.setup();
-  Firebase.setup();
-}
+export const setup = (serviceConfig, firebaseConfig) => {
+  service.setup(serviceConfig);
+  firebase.setup(firebaseConfig);
+};
