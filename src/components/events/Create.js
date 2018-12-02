@@ -9,10 +9,13 @@ import {
   LongTextInput,
   BooleanInput,
   NumberInput,
+  ImageInput,
+  ImageField,
   required,
   FormDataConsumer,
   TabbedForm,
-  FormTab
+  FormTab,
+  AutocompleteInput
 } from "react-admin";
 
 // Validate
@@ -71,21 +74,37 @@ export class ResCreate extends Component {
             >
               <SelectInput optionText="name" />
             </ReferenceInput>
-            <TextInput source="city" validate={required()} />
+            <ImageInput
+              source="poster"
+              label="Imágen Principal del Evento"
+              accept="image/*"
+            >
+              <ImageField source="src" title="title" />
+            </ImageInput>
+
+            <BooleanInput source="active" defaultValue={false} />
+
+            <ReferenceInput
+              source="city"
+              reference="cities"
+              validate={required()}
+            >
+              <AutocompleteInput
+                limitChoicesToValue={false}
+                allowEmpty
+                optionText="city"
+                optionValue="_id"
+                shouldRenderSuggestions={val => {
+                  return val.trim() > 2;
+                }}
+              />
+            </ReferenceInput>
             <LongTextInput source="description" />
           </FormTab>
           <FormTab label="Ubicación">
-            <TextInput source="location" defaultValue="-5.748529,41.513958" />
-            <TextInput source="adress" />
+            <TextInput source="location" defaultValue="41.513958,-5.748529" />
+            <TextInput source="address" />
             <TextInput source="zip_code" />
-
-            <ReferenceInput source="province" reference="provinces">
-              <SelectInput optionText="name" />
-            </ReferenceInput>
-
-            <ReferenceInput source="country" reference="countries">
-              <SelectInput optionText="name" />
-            </ReferenceInput>
           </FormTab>
           <FormTab label="Información Adicional">
             <NumberInput source="min_age" />

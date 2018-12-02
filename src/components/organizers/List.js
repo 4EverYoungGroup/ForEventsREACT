@@ -9,8 +9,6 @@ import {
   EditButton
 } from "react-admin";
 
-import { UrlField } from "../widgets";
-
 const ResFilter = props => (
   <Filter {...props}>
     <TextInput label="Search" source="q" alwaysOn />

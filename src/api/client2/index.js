@@ -1,4 +1,5 @@
 import { stringify } from "query-string";
+import { service } from "..";
 import {
   fetchUtils,
   HttpError,
@@ -103,6 +104,29 @@ export default (apiUrl, httpClient = httpAuthClient) => {
             query
           );
           url += `${apiUrl}/${resource}/list?${stringify(query)}`;
+        } else if (resource === "cities") {
+          const orderSign = order === "DESC" ? "-" : "";
+          let sortQuery = {};
+          if (field && field !== "id") sortQuery["sort"] = orderSign + field;
+          else sortQuery["sort"] = "city";
+
+          /* set */
+          let filterQuery = {};
+          if (params.filter.q) filterQuery["city"] = params.filter.q;
+          filterQuery["country"] = "España";
+
+          /* set */
+          const query = {
+            limit: 250,
+            ...filterQuery,
+            ...sortQuery
+          };
+          console.log(
+            "<APIClient> convertDataRequestToHTTP: GET_LIST - params.filter=%o, query=%o",
+            params.filter,
+            query
+          );
+          url += `${apiUrl}/${resource}?${stringify(query)}`;
         } else if (resource === "provinces" || resource === "countries") {
           const orderSign = order === "DESC" ? "-" : "";
           let sortQuery = {};
@@ -183,7 +207,11 @@ export default (apiUrl, httpClient = httpAuthClient) => {
         break;
       }
       case GET_ONE:
-        if (resource === "events" || resource === "eventtypes")
+        if (
+          resource === "events" ||
+          resource === "eventtypes" ||
+          resource === "cities"
+        )
           url += `${apiUrl}/${resource}?id=${params.id}`;
         else url += `${apiUrl}/${resource}/${params.id}`;
         break;
@@ -270,8 +298,10 @@ export default (apiUrl, httpClient = httpAuthClient) => {
       case GET_LIST:
         let rows = json.result;
         if (resource === "users") rows = json.result.rows;
+        else if (resource === "cities") rows = json.result;
         else if (resource === "provinces") rows = json.result.rows;
         else if (resource === "countries") rows = json.result.rows;
+        console.log("<APIClient> convertHTTPResponse: GET_LIST, rows=%o", rows);
         rows = rows.map(item => {
           let res = { id: item._id, ...item };
           if (
@@ -280,7 +310,7 @@ export default (apiUrl, httpClient = httpAuthClient) => {
             item.location.coordinates
           ) {
             res.location =
-              item.location.coordinates[0] + "," + item.location.coordinates[1];
+              item.location.coordinates[1] + "," + item.location.coordinates[0];
           }
           return res;
         });
@@ -301,10 +331,47 @@ export default (apiUrl, httpClient = httpAuthClient) => {
             json.data.location &&
             json.data.location.coordinates
           ) {
+            let newPoster = {
+              url: params.data.poster,
+              event: res.data.id,
+              media_type: "picture",
+              poster: true,
+              name: `${res.data.name}`,
+              description: ""
+            };
+
+            /* create */
+            service
+              .createPoster(res.data.id, `${res.data.name}`, params.data.poster)
+              .then(response => {
+                console.log(
+                  "<APIClient> convertHTTPResponse: POSTER Response response=%o",
+                  response
+                );
+              })
+              .catch(function({ config, request, response }) {
+                console.log(
+                  "<APIClient> convertHTTPResponse: POSTER Exception caught, args=%o, config=%o, request=%o, response=%o",
+                  arguments,
+                  config,
+                  request,
+                  response
+                );
+              });
+
+            /* set */
+            res.data.poster = params.data.poster;
             res.data.location =
-              json.data.location.coordinates[0] +
+              json.data.location.coordinates[1] +
               "," +
-              json.data.location.coordinates[1];
+              json.data.location.coordinates[0];
+
+            /* done */
+            console.log(
+              "<APIClient> convertHTTPResponse: CREATE EVENT, Got newPoster=%o, res=%o",
+              newPoster,
+              res
+            );
           }
           return res;
         }
@@ -372,8 +439,10 @@ export default (apiUrl, httpClient = httpAuthClient) => {
       }
       return Promise.all(
         params.ids.map(id => {
+          if (id._id) id = id._id; // Patch: 'cities'
           let url = `${apiUrl}/${resource}/${id}`;
-          if (resource === "eventtypes") url = `${apiUrl}/${resource}?id=${id}`;
+          if (resource === "eventtypes" || resource === "cities")
+            url = `${apiUrl}/${resource}?id=${id}`;
           return httpClient(url, {
             method: "GET"
           });
@@ -387,6 +456,22 @@ export default (apiUrl, httpClient = httpAuthClient) => {
           data: responses.map(response => {
             if (resource === "users")
               return { ...response.json.user, id: response.json.user._id };
+            else if (resource === "cities") {
+              if (!response.json.ok) return { id: null };
+              return {
+                ...response.json.result[0],
+                id: response.json.result[0]._id
+              };
+            } else if (resource === "provinces")
+              return {
+                ...response.json.province,
+                id: response.json.province._id
+              };
+            else if (resource === "countries")
+              return {
+                ...response.json.country,
+                id: response.json.country._id
+              };
             else
               return { ...response.json.result, id: response.json.result._id };
           })

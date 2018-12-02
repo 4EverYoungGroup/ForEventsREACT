@@ -1,4 +1,4 @@
-import { AUTH_LOGIN, AUTH_LOGOUT, AUTH_ERROR } from "react-admin";
+import { AUTH_LOGIN, AUTH_LOGOUT, AUTH_ERROR, AUTH_CHECK } from "react-admin";
 import { service } from "..";
 
 export default (type, params) => {
@@ -41,6 +41,9 @@ export default (type, params) => {
       return Promise.reject();
     }
     return Promise.resolve();
+  }
+  if (type === AUTH_CHECK) {
+    return localStorage.getItem("token") ? Promise.resolve() : Promise.reject();
   }
   return Promise.resolve();
 };

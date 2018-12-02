@@ -18,3 +18,17 @@ export function login(email, password) {
     password
   });
 }
+
+// Create Poster
+export function createPoster(event, name, src) {
+  const url = "/apiv1/medias";
+  axios.defaults.headers.post["x-access-token"] = localStorage.getItem("token");
+  return axios.post(url, {
+    url: src,
+    event,
+    media_type: "picture",
+    poster: true,
+    name,
+    description: ""
+  });
+}

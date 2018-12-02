@@ -1,8 +1,10 @@
 import React, { Component } from "react";
+import createHistory from "history/createHashHistory";
 import { Admin, Resource, ListGuesser, EditGuesser } from "react-admin";
+import { createMuiTheme } from "@material-ui/core/styles";
 
 // App Resources
-import Home from "../components/Home";
+import { Login } from "../components/auth";
 import { AdminIcon, AdminList } from "../components/admins";
 import {
   OrganizerIcon,
@@ -43,12 +45,29 @@ const messages = {
 };
 const i18nProvider = locale => messages[locale];
 
+// History
+let history = null;
+if (Config.app.basename === "") history = createHistory();
+else history = createHistory({ basename: Config.app.basename });
+
 // Data Provider
 /*const dataProvider = jsonServerProvider(
   "https://cors-anywhere.herokuapp.com/https://jsonplaceholder.typicode.com"
 );*/
 const dataProvider = api.client(Config.service.baseURL + "/apiv1");
 const uploadCapableDataProvider = addUploadFeature(dataProvider);
+
+// Theming
+const theme = createMuiTheme({
+  palette: {
+    secondary: {
+      //main: "#ff9f06",
+      main: "#cc830f",
+      contrastText: "#fff"
+      //contrastText: "#222"
+    }
+  }
+});
 
 // App
 /*<Resource
@@ -61,16 +80,21 @@ const uploadCapableDataProvider = addUploadFeature(dataProvider);
 export default class App extends Component {
   componentWillMount() {
     api.setup(Config.service, Config.firebase);
+    localStorage.removeItem("token");
+    localStorage.removeItem("id");
+    localStorage.removeItem("role");
   }
 
   render() {
     return (
       <Admin
         authProvider={authProvider}
-        dashboard={Home}
         dataProvider={uploadCapableDataProvider}
         locale="es"
         i18nProvider={i18nProvider}
+        history={history}
+        loginPage={Login}
+        theme={theme}
       >
         <Resource name="admins" icon={AdminIcon} list={AdminList} />
         <Resource
@@ -101,6 +125,7 @@ export default class App extends Component {
           create={TypeCreate}
           edit={TypeEdit}
         />
+        <Resource name="cities" />
         <Resource name="provinces" />
         <Resource name="countries" />
       </Admin>

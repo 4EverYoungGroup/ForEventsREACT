@@ -4,7 +4,7 @@ import {
   SimpleForm,
   TextInput,
   ReferenceInput,
-  SelectInput
+  AutocompleteInput
 } from "react-admin";
 
 export const ResCreate = props => (
@@ -17,12 +17,16 @@ export const ResCreate = props => (
       <TextInput source="last_name" />
       <TextInput source="address" />
       <TextInput source="zip_code" />
-      <TextInput source="city" />
-      <ReferenceInput source="province" reference="provinces">
-        <SelectInput optionText="name" />
-      </ReferenceInput>
-      <ReferenceInput source="country" reference="countries">
-        <SelectInput optionText="name" />
+      <ReferenceInput source="city" reference="cities">
+        <AutocompleteInput
+          limitChoicesToValue={false}
+          allowEmpty
+          optionText="city"
+          optionValue="_id"
+          shouldRenderSuggestions={val => {
+            return val.trim() > 2;
+          }}
+        />
       </ReferenceInput>
       <TextInput source="mobile_number" />
     </SimpleForm>

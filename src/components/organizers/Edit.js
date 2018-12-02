@@ -5,9 +5,8 @@ import {
   DisabledInput,
   TextInput,
   ReferenceInput,
-  SelectInput
+  AutocompleteInput
 } from "react-admin";
-import { replaceSubstitutionTransformer } from "common-tags";
 
 // Title
 const getName = record => {
@@ -47,12 +46,16 @@ export const ResEdit = props => (
       <TextInput source="last_name" />
       <TextInput source="address" />
       <TextInput source="zip_code" />
-      <TextInput source="city" />
-      <ReferenceInput source="province" reference="provinces">
-        <SelectInput optionText="name" />
-      </ReferenceInput>
-      <ReferenceInput source="country" reference="countries">
-        <SelectInput optionText="name" />
+      <ReferenceInput source="city" reference="cities">
+        <AutocompleteInput
+          limitChoicesToValue={false}
+          allowEmpty
+          optionText="city"
+          optionValue="_id"
+          shouldRenderSuggestions={val => {
+            return val.trim() > 2;
+          }}
+        />
       </ReferenceInput>
       <TextInput source="mobile_number" />
       <TextInput source="phone_number" />
