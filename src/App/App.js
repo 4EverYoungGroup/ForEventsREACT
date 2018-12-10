@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import createHistory from "history/createHashHistory";
-import { Admin, Resource, ListGuesser, EditGuesser } from "react-admin";
+import { Admin, Resource } from "react-admin";
 import { createMuiTheme } from "@material-ui/core/styles";
 
 // App Resources
@@ -34,7 +34,6 @@ import * as JSON from "../utils/JSON";
 
 // i18N Provider
 import stdSpanishMessages from "ra-language-spanish";
-import jsonServerProvider from "ra-data-json-server";
 import * as resources from "../i18n";
 const messages = {
   es: {
@@ -51,9 +50,6 @@ if (Config.app.basename === "") history = createHistory();
 else history = createHistory({ basename: Config.app.basename });
 
 // Data Provider
-/*const dataProvider = jsonServerProvider(
-  "https://cors-anywhere.herokuapp.com/https://jsonplaceholder.typicode.com"
-);*/
 const dataProvider = api.client(Config.service.baseURL + "/apiv1");
 const uploadCapableDataProvider = addUploadFeature(dataProvider);
 
@@ -64,25 +60,19 @@ const theme = createMuiTheme({
   },
   palette: {
     secondary: {
-      //main: "#ff9f06",
       main: "#cc830f",
       contrastText: "#fff"
-      //contrastText: "#222"
     }
   }
 });
 
 // App
-/*<Resource
-  name="posts"
-  icon={PostIcon}
-  list={PostList}
-  edit={PostEdit}
-  create={PostCreate}
-/> */
 export default class App extends Component {
   componentWillMount() {
+    /* Setup API */
     api.setup(Config.service, Config.firebase);
+
+    /* Reset Logged User Infos */
     localStorage.removeItem("token");
     localStorage.removeItem("id");
     localStorage.removeItem("role");

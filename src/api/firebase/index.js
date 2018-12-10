@@ -1,5 +1,4 @@
 import * as firebase from "firebase";
-import * as Config from "../../App/cfg";
 
 // Setup
 export const setup = firebaseConfig => {

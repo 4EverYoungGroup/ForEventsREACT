@@ -24,7 +24,7 @@ export const ResList = ({ permissions, ...props }) => (
     filters={<ResFilter />}
   >
     <Datagrid rowClick="edit">
-      {permissions === "admin" && (
+      {permissions === "admin_bck" && (
         <ReferenceField source="organizer" reference="organizers">
           <TextField source="email" />
         </ReferenceField>

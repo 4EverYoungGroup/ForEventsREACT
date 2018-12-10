@@ -25,7 +25,7 @@ export const ResList = props => (
     <Datagrid rowClick="edit">
       <TextField source="company_name" />
       <EmailField source="email" />
-      <ReferenceField source="city" reference="cities">
+      <ReferenceField source="city" reference="cities" linkType={false}>
         <TextField source="city" />
       </ReferenceField>
       <EditButton />
