@@ -2,7 +2,7 @@
   "name": "foreventsweb",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://www.4events.net/admin",
+  "homepage_PROD": "https://www.4events.net/admin",
   "dependencies": {
     "@material-ui/core": "^3.3.0",
     "@material-ui/icons": "^3.0.1",

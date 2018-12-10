@@ -32,3 +32,15 @@ export function createPoster(event, name, src) {
     description: ""
   });
 }
+
+// Update Poster
+export function updatePoster(id, name, src) {
+  const url = "/apiv1/medias/" + id;
+  axios.defaults.headers.put["x-access-token"] = localStorage.getItem("token");
+  return axios.put(url, {
+    url: src,
+    media_type: "picture",
+    poster: "true",
+    name
+  });
+}

@@ -12,6 +12,12 @@ export const es = {
     },
     message: {
       invalid_form: "Datos inválidos. Por favor corrija los errores detectados"
+    },
+    input: {
+      image: {
+        upload_single:
+          "Arrastra aquí la imagen de tu evento, o presiona para seleccionarla..."
+      }
     }
   },
   app: {
@@ -80,7 +86,7 @@ export const es = {
         organizer: "Organizador",
         begin_date: "Fecha/hora de Inicio",
         end_date: "Fecha/hora de Fin",
-        name: "Nombre",
+        name: "Nombre del Evento",
         location: "Posición",
         event_type: "Categoría",
         city: "Población",

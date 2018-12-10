@@ -94,7 +94,7 @@ export default (apiUrl, httpClient = httpAuthClient) => {
             limit: perPage,
             includeTotal: "true",
             fields:
-              "create_date profile email first_name last_name alias address zip_code province country idn company_name mobile_number phone_number favorite_searches transactions events",
+              "create_date profile email first_name last_name alias address zip_code province country idn company_name mobile_number phone_number favorite_searches transactions city events",
             ...sortQuery,
             ...filterQuery
           };
@@ -172,6 +172,8 @@ export default (apiUrl, httpClient = httpAuthClient) => {
           /* set */
           let filterQuery = {};
           if (params.filter.q) filterQuery["queryText"] = params.filter.q;
+          if (localStorage.getItem("role") === "Organizer")
+            filterQuery["organizerId"] = localStorage.getItem("id");
 
           /* set */
           const query = {
@@ -207,11 +209,11 @@ export default (apiUrl, httpClient = httpAuthClient) => {
         break;
       }
       case GET_ONE:
-        if (
-          resource === "events" ||
-          resource === "eventtypes" ||
-          resource === "cities"
-        )
+        if (resource === "events")
+          url += `${apiUrl}/${resource}?id=${
+            params.id
+          }&media=name+description+url+_id+poster`;
+        else if (resource === "eventtypes" || resource === "cities")
           url += `${apiUrl}/${resource}?id=${params.id}`;
         else url += `${apiUrl}/${resource}/${params.id}`;
         break;
@@ -237,6 +239,11 @@ export default (apiUrl, httpClient = httpAuthClient) => {
         }
         break;
       case CREATE:
+        console.log(
+          "<APIClient> convertDataRequestToHTTP: CREATE - resource=%o, params.data=%o",
+          resource,
+          params.data
+        );
         if (resource === "users") url += `${apiUrl}/${resource}/register`;
         else if (resource === "eventtypes")
           url += `${apiUrl}/${resource}?${stringify(params.data)}`;
@@ -246,6 +253,9 @@ export default (apiUrl, httpClient = httpAuthClient) => {
         options.method = "POST";
         if (resource !== "eventtypes" && resource !== "events") {
           if (resource === "users") params.data.profile = profile;
+          options.body = stringify(params.data);
+        }
+        if (resource === "events") {
           options.body = stringify(params.data);
         }
         break;
@@ -295,6 +305,16 @@ export default (apiUrl, httpClient = httpAuthClient) => {
       params
     );
     switch (type) {
+      case DELETE:
+        console.log(
+          "<APIClient> convertHTTPResponse: DELETE - params.previousData=%o",
+          params.previousData
+        );
+        if (response.json.ok)
+          return {
+            data: params.previousData
+          };
+        break;
       case GET_LIST:
         let rows = json.result;
         if (resource === "users") rows = json.result.rows;
@@ -326,20 +346,7 @@ export default (apiUrl, httpClient = httpAuthClient) => {
           return { data: { ...json.user, id: json.user._id } };
         else {
           let res = { data: { ...json.data, id: json.data._id } };
-          if (
-            resource === "events" &&
-            json.data.location &&
-            json.data.location.coordinates
-          ) {
-            let newPoster = {
-              url: params.data.poster,
-              event: res.data.id,
-              media_type: "picture",
-              poster: true,
-              name: `${res.data.name}`,
-              description: ""
-            };
-
+          if (resource === "events") {
             /* create */
             service
               .createPoster(res.data.id, `${res.data.name}`, params.data.poster)
@@ -360,16 +367,23 @@ export default (apiUrl, httpClient = httpAuthClient) => {
               });
 
             /* set */
-            res.data.poster = params.data.poster;
-            res.data.location =
-              json.data.location.coordinates[1] +
-              "," +
-              json.data.location.coordinates[0];
+            res.data.poster = { src: params.data.poster };
+
+            /* check */
+            if (
+              resource === "events" &&
+              json.data.location &&
+              json.data.location.coordinates
+            ) {
+              res.data.location =
+                json.data.location.coordinates[1] +
+                "," +
+                json.data.location.coordinates[0];
+            }
 
             /* done */
             console.log(
-              "<APIClient> convertHTTPResponse: CREATE EVENT, Got newPoster=%o, res=%o",
-              newPoster,
+              "<APIClient> convertHTTPResponse: CREATE EVENT, Got res=%o",
               res
             );
           }
@@ -379,17 +393,30 @@ export default (apiUrl, httpClient = httpAuthClient) => {
         if (resource === "users")
           return { data: { ...json.user, id: json.user._id } };
         else if (resource === "events") {
-          let res = { data: { ...json.result[0], id: json.result[0]._id } };
-          if (
-            resource === "events" &&
-            json.result[0].location &&
-            json.result[0].location.coordinates
-          ) {
+          const event = json.result[0];
+          let res = { data: { id: event._id, ...event } };
+          if (event.location && event.location.coordinates) {
             res.data.location =
-              json.result[0].location.coordinates[0] +
+              event.location.coordinates[1] +
               "," +
-              json.result[0].location.coordinates[1];
+              event.location.coordinates[0];
           }
+          console.log(
+            "<APIClient> convertHTTPResponse: GET_ONE EVENT, Got event.media=%o",
+            event.media
+          );
+          if (event.media) {
+            const poster = event.media.find(e => e.poster || !e.poster);
+            //const poster = event.media.find(e => e.poster);
+            if (poster) {
+              res.data.poster = { src: poster.url };
+              res.data.posterId = poster._id;
+            }
+          }
+          console.log(
+            "<APIClient> convertHTTPResponse: GET_ONE EVENT, Got res=%o",
+            res
+          );
           return res;
         } else return { data: { ...json.result, id: json.result._id } };
       case UPDATE:
@@ -397,16 +424,49 @@ export default (apiUrl, httpClient = httpAuthClient) => {
           return { data: { ...json.user, id: json.user._id } };
         else if (resource === "events") {
           let res = { data: { ...json.result, id: json.result._id } };
-          if (
-            resource === "events" &&
-            json.result.location &&
-            json.result.location.coordinates
-          ) {
+
+          /* set */
+          res.data.poster = { src: params.data.poster };
+
+          /* create */
+          console.log(
+            "<APIClient> convertHTTPResponse: About to update Poster, posterId=%o, poster=%o",
+            params.data.posterId,
+            params.data.poster
+          );
+          service
+            .updatePoster(
+              params.data.posterId,
+              `${res.data.name}`,
+              params.data.poster
+            )
+            .then(response => {
+              console.log(
+                "<APIClient> convertHTTPResponse: POSTER Response response=%o",
+                response
+              );
+            })
+            .catch(function({ config, request, response }) {
+              console.log(
+                "<APIClient> convertHTTPResponse: POSTER Exception caught, args=%o, config=%o, request=%o, response=%o",
+                arguments,
+                config,
+                request,
+                response
+              );
+            });
+
+          /* check */
+          if (json.result.location && json.result.location.coordinates) {
             res.data.location =
-              json.result.location.coordinates[0] +
+              json.result.location.coordinates[1] +
               "," +
-              json.result.location.coordinates[1];
+              json.result.location.coordinates[0];
           }
+          console.log(
+            "<APIClient> convertHTTPResponse: UPDATE EVENT, Got res=%o",
+            res
+          );
           return res;
         } else if (resource === "eventtypes")
           return { data: { ...json.result, id: json.result._id } };

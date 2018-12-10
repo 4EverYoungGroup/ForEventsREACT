@@ -1,7 +1,6 @@
 import React from "react";
 import {
   Edit,
-  DisabledInput,
   TextInput,
   LongTextInput,
   DateTimeInput,
@@ -13,7 +12,10 @@ import {
   FormDataConsumer,
   TabbedForm,
   FormTab,
-  AutocompleteInput
+  ImageField,
+  ImageInput,
+  TextField,
+  ReferenceField
 } from "react-admin";
 
 const ResTitle = ({ record }) => {
@@ -39,17 +41,35 @@ const validate = values => {
   }
   return errors;
 };
-export const ResEdit = props => (
+export const ResEdit = ({ permissions, ...props }) => (
   <Edit {...props} title={<ResTitle />}>
     <TabbedForm redirect={false} validate={values => validate(values)}>
       <FormTab label="Datos Generales">
+        {permissions === "admin" && (
+          <ReferenceField source="organizer" reference="organizers">
+            <TextField source="email" />
+          </ReferenceField>
+        )}
+
+        <TextInput source="name" validate={required()} />
         <ReferenceInput
-          source="organizer"
-          reference="organizers"
+          source="event_type"
+          reference="eventtypes"
           validate={required()}
         >
-          <SelectInput optionText="email" />
+          <SelectInput optionText="name" />
         </ReferenceInput>
+
+        <ImageInput
+          source="poster"
+          label="POSTER (Obligatorio)"
+          accept="image/*"
+          options={{ multiple: false }}
+          validate={required()}
+        >
+          <ImageField source="src" />
+        </ImageInput>
+
         <DateTimeInput source="begin_date" validate={required()} />
         <FormDataConsumer>
           {({ formData, ...rest }) => (
@@ -66,32 +86,15 @@ export const ResEdit = props => (
           )}
         </FormDataConsumer>
 
-        <TextInput source="name" validate={required()} />
-        <ReferenceInput
-          source="event_type"
-          reference="eventtypes"
-          validate={required()}
-        >
-          <SelectInput optionText="name" />
-        </ReferenceInput>
         <BooleanInput source="active" />
-        <ReferenceInput source="city" reference="cities" validate={required()}>
-          <AutocompleteInput
-            limitChoicesToValue={false}
-            allowEmpty
-            optionText="city"
-            optionValue="_id"
-            shouldRenderSuggestions={val => {
-              return val.trim() > 2;
-            }}
-          />
-        </ReferenceInput>
+        <TextInput source="city" validate={required()} />
         <LongTextInput source="description" />
       </FormTab>
       <FormTab label="Ubicación">
-        <TextInput source="location" defaultValue="-5.748529,41.513958" />
+        <TextInput source="location" defaultValue="" />
         <TextInput source="address" />
         <TextInput source="zip_code" />
+        <TextInput source="province" />
       </FormTab>
       <FormTab label="Información Adicional">
         <NumberInput source="min_age" />

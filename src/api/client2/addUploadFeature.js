@@ -56,6 +56,22 @@ const addUploadFeature = requestHandler => (type, resource, params) => {
       })
     );
   }
+  if (type === "UPDATE" && resource === "events") {
+    const poster = params.data.poster;
+    console.log("<UploadFeature> requestHandler: UPDATE, poster=%o", poster);
+
+    /* done */
+    if (poster.rawFile)
+      return uploadFileToFirebase(poster).then(fileURL =>
+        requestHandler(type, resource, {
+          ...params,
+          data: {
+            ...params.data,
+            poster: fileURL
+          }
+        })
+      );
+  }
 
   /* done */
   return requestHandler(type, resource, params);

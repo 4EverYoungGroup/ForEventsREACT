@@ -14,8 +14,7 @@ import {
   required,
   FormDataConsumer,
   TabbedForm,
-  FormTab,
-  AutocompleteInput
+  FormTab
 } from "react-admin";
 
 // Validate
@@ -37,96 +36,91 @@ const validate = values => {
   }
   return errors;
 };
-export class ResCreate extends Component {
-  render() {
-    return (
-      <Create {...this.props}>
-        <TabbedForm validate={values => validate(values)}>
-          <FormTab label="Datos Generales">
-            <ReferenceInput
-              source="organizer"
-              reference="organizers"
+
+export const ResCreate = ({ permissions, ...props }) => (
+  <Create {...props}>
+    <TabbedForm
+      defaultValue={{
+        organizer:
+          localStorage.getItem("role") === "Organizer"
+            ? localStorage.getItem("id")
+            : ""
+      }}
+      validate={values => validate(values)}
+    >
+      <FormTab label="Datos Generales">
+        {permissions === "admin" && (
+          <ReferenceInput
+            source="organizer"
+            reference="organizers"
+            validate={required()}
+          >
+            <SelectInput optionText="email" />
+          </ReferenceInput>
+        )}
+        <TextInput source="name" validate={required()} />
+        <ReferenceInput
+          source="event_type"
+          reference="eventtypes"
+          validate={required()}
+        >
+          <SelectInput optionText="name" />
+        </ReferenceInput>
+
+        <ImageInput
+          source="poster"
+          label="POSTER (Obligatorio)"
+          accept="image/*"
+          options={{ multiple: false }}
+          validate={required()}
+        >
+          <ImageField source="src" title="title" />
+        </ImageInput>
+        <DateTimeInput source="begin_date" validate={required()} />
+        <FormDataConsumer>
+          {({ formData, ...rest }) => (
+            <DateTimeInput
+              source="end_date"
               validate={required()}
-            >
-              <SelectInput optionText="email" />
-            </ReferenceInput>
-            <DateTimeInput source="begin_date" validate={required()} />
-            <FormDataConsumer>
-              {({ formData, ...rest }) => (
-                <DateTimeInput
-                  source="end_date"
-                  validate={required()}
-                  defaultValue={
-                    formData.begin_date && formData.begin_date.getTime
-                      ? new Date(formData.begin_date.getTime() + 3600000)
-                      : undefined
-                  }
-                  {...rest}
-                />
-              )}
-            </FormDataConsumer>
-
-            <TextInput source="name" validate={required()} />
-            <ReferenceInput
-              source="event_type"
-              reference="eventtypes"
-              validate={required()}
-            >
-              <SelectInput optionText="name" />
-            </ReferenceInput>
-            <ImageInput
-              source="poster"
-              label="Imágen Principal del Evento"
-              accept="image/*"
-            >
-              <ImageField source="src" title="title" />
-            </ImageInput>
-
-            <BooleanInput source="active" defaultValue={false} />
-
-            <ReferenceInput
-              source="city"
-              reference="cities"
-              validate={required()}
-            >
-              <AutocompleteInput
-                limitChoicesToValue={false}
-                allowEmpty
-                optionText="city"
-                optionValue="_id"
-                shouldRenderSuggestions={val => {
-                  return val.trim() > 2;
-                }}
-              />
-            </ReferenceInput>
-            <LongTextInput source="description" />
-          </FormTab>
-          <FormTab label="Ubicación">
-            <TextInput source="location" defaultValue="41.513958,-5.748529" />
-            <TextInput source="address" />
-            <TextInput source="zip_code" />
-          </FormTab>
-          <FormTab label="Información Adicional">
-            <NumberInput source="min_age" />
-
-            <FormDataConsumer>
-              {({ formData, ...rest }) =>
-                formData.indoor && (
-                  <NumberInput source="max_visitors" {...rest} />
-                )
+              defaultValue={
+                formData.begin_date && formData.begin_date.getTime
+                  ? new Date(formData.begin_date.getTime() + 3600000)
+                  : undefined
               }
-            </FormDataConsumer>
-            <BooleanInput source="indoor" />
+              {...rest}
+            />
+          )}
+        </FormDataConsumer>
 
-            <FormDataConsumer>
-              {({ formData, ...rest }) =>
-                !formData.free && <NumberInput source="price" {...rest} />
-              }
-            </FormDataConsumer>
-            <BooleanInput source="free" defaultValue={true} />
-          </FormTab>
-        </TabbedForm>
-      </Create>
-    );
-  }
-}
+        <BooleanInput source="active" defaultValue={false} />
+        <TextInput source="city" validate={required()} />
+
+        <LongTextInput source="description" />
+      </FormTab>
+      <FormTab label="Ubicación">
+        <TextInput source="location" defaultValue="" />
+        <TextInput source="address" />
+
+        <TextInput source="zip_code" />
+        <TextInput source="province" />
+      </FormTab>
+      <FormTab label="Información Adicional">
+        <NumberInput source="min_age" />
+
+        <FormDataConsumer>
+          {({ formData, ...rest }) =>
+            formData.indoor && <NumberInput source="max_visitors" {...rest} />
+          }
+        </FormDataConsumer>
+        <BooleanInput source="indoor" />
+
+        <FormDataConsumer>
+          {({ formData, ...rest }) =>
+            !formData.free && <NumberInput source="price" {...rest} />
+          }
+        </FormDataConsumer>
+        <BooleanInput source="free" defaultValue={true} />
+      </FormTab>
+    </TabbedForm>
+  </Create>
+);

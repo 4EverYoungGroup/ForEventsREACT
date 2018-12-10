@@ -46,17 +46,7 @@ export const ResEdit = props => (
       <TextInput source="last_name" />
       <TextInput source="address" />
       <TextInput source="zip_code" />
-      <ReferenceInput source="city" reference="cities">
-        <AutocompleteInput
-          limitChoicesToValue={false}
-          allowEmpty
-          optionText="city"
-          optionValue="_id"
-          shouldRenderSuggestions={val => {
-            return val.trim() > 2;
-          }}
-        />
-      </ReferenceInput>
+
       <TextInput source="mobile_number" />
       <TextInput source="phone_number" />
     </SimpleForm>

@@ -6,7 +6,8 @@ import {
   TextInput,
   TextField,
   EmailField,
-  EditButton
+  EditButton,
+  ReferenceField
 } from "react-admin";
 
 const ResFilter = props => (
@@ -22,11 +23,11 @@ export const ResList = props => (
     filters={<ResFilter />}
   >
     <Datagrid rowClick="edit">
-      <TextField source="company" />
-      <TextField source="first_name" />
-      <TextField source="last_name" />
+      <TextField source="company_name" />
       <EmailField source="email" />
-      <TextField source="profile" />
+      <ReferenceField source="city" reference="cities">
+        <TextField source="city" />
+      </ReferenceField>
       <EditButton />
     </Datagrid>
   </List>

@@ -59,6 +59,9 @@ const uploadCapableDataProvider = addUploadFeature(dataProvider);
 
 // Theming
 const theme = createMuiTheme({
+  typography: {
+    useNextVariants: true
+  },
   palette: {
     secondary: {
       //main: "#ff9f06",
@@ -96,38 +99,50 @@ export default class App extends Component {
         loginPage={Login}
         theme={theme}
       >
-        <Resource name="admins" icon={AdminIcon} list={AdminList} />
-        <Resource
-          name="organizers"
-          icon={OrganizerIcon}
-          list={OrganizerList}
-          create={OrganizerCreate}
-          edit={OrganizerEdit}
-        />
-        <Resource
-          name="users"
-          icon={UserIcon}
-          list={UserList}
-          create={UserCreate}
-          edit={UserEdit}
-        />
-        <Resource
-          name="events"
-          icon={EventIcon}
-          list={EventList}
-          create={EventCreate}
-          edit={EventEdit}
-        />
-        <Resource
-          name="eventtypes"
-          icon={TypeIcon}
-          list={TypeList}
-          create={TypeCreate}
-          edit={TypeEdit}
-        />
-        <Resource name="cities" />
-        <Resource name="provinces" />
-        <Resource name="countries" />
+        {permissions => [
+          permissions === "admin" ? (
+            <Resource name="admins" icon={AdminIcon} list={AdminList} />
+          ) : null,
+          permissions === "admin" ? (
+            <Resource
+              name="organizers"
+              icon={OrganizerIcon}
+              list={OrganizerList}
+              create={OrganizerCreate}
+              edit={OrganizerEdit}
+            />
+          ) : null,
+          permissions === "admin" ? (
+            <Resource
+              name="users"
+              icon={UserIcon}
+              list={UserList}
+              create={UserCreate}
+              edit={UserEdit}
+            />
+          ) : null,
+          <Resource
+            name="events"
+            icon={EventIcon}
+            list={EventList}
+            create={EventCreate}
+            edit={EventEdit}
+          />,
+
+          permissions === "admin" ? (
+            <Resource
+              name="eventtypes"
+              icon={TypeIcon}
+              list={TypeList}
+              create={TypeCreate}
+              edit={TypeEdit}
+            />
+          ) : null,
+          permissions === "organizer" ? <Resource name="eventtypes" /> : null,
+          <Resource name="cities" />,
+          <Resource name="provinces" />,
+          <Resource name="countries" />
+        ]}
       </Admin>
     );
   }
