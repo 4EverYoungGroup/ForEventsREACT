@@ -15,17 +15,7 @@ import {
 } from "react-admin";
 
 /**
- * Maps react-admin queries to a simple REST API
- *
- * The REST dialect is similar to the one of FakeRest
- * @see https://github.com/marmelab/FakeRest
- * @example
- * GET_LIST     => GET http://my.api.url/posts?sort=['title','ASC']&range=[0, 24]
- * GET_ONE      => GET http://my.api.url/posts/123
- * GET_MANY     => GET http://my.api.url/posts?filter={ids:[123,456,789]}
- * UPDATE       => PUT http://my.api.url/posts/123
- * CREATE       => POST http://my.api.url/posts
- * DELETE       => DELETE http://my.api.url/posts/123
+ * Maps react-admin queries to 4Events REST API
  */
 const httpAuthClient = (url, options = {}) => {
   if (!options.headers) {
@@ -39,11 +29,6 @@ const httpAuthClient = (url, options = {}) => {
   const token = localStorage.getItem("token");
   if (token) {
     options.headers.set("x-access-token", token);
-    /*
-    options.user = {
-      authenticated: true,
-      token: token
-    };*/
   }
 
   /* done */
@@ -225,6 +210,8 @@ export default (apiUrl, httpClient = httpAuthClient) => {
           })}`;
         } else {
           url += `${apiUrl}/${resource}/${params.id}`;
+
+          /* sanitize */
           delete params.data.__v;
           delete params.data._id;
           delete params.data.id;
@@ -235,6 +222,8 @@ export default (apiUrl, httpClient = httpAuthClient) => {
           } else if (resource === "events") {
             delete params.data.organizer;
           }
+
+          /* set */
           options.body = stringify(params.data);
         }
         break;
@@ -247,15 +236,17 @@ export default (apiUrl, httpClient = httpAuthClient) => {
         if (resource === "users") url += `${apiUrl}/${resource}/register`;
         else if (resource === "eventtypes")
           url += `${apiUrl}/${resource}?${stringify(params.data)}`;
-        else if (resource === "events")
+        else if (resource === "events") {
+          // Server Patch (Allows Longer Descriptions for Events)
+          options.body = stringify(params.data);
+
+          /* set */
+          delete params.data.description;
           url += `${apiUrl}/${resource}?${stringify(params.data)}`;
-        else url += `${apiUrl}/${resource}`;
+        } else url += `${apiUrl}/${resource}`;
         options.method = "POST";
         if (resource !== "eventtypes" && resource !== "events") {
           if (resource === "users") params.data.profile = profile;
-          options.body = stringify(params.data);
-        }
-        if (resource === "events") {
           options.body = stringify(params.data);
         }
         break;
