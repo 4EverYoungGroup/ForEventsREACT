@@ -16,7 +16,7 @@ export const es = {
     input: {
       image: {
         upload_single:
-          "Arrastra aquí la imagen de tu evento, o presiona para seleccionarla..."
+          "Presiona aquí para seleccionar la imagen de tu evento..."
       }
     }
   },
